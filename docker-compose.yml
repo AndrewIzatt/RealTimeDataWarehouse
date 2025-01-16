@@ -130,6 +130,9 @@ services:
     <<: *airflow-common
     command: webserver
     container_name: airflow-webserver
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8180:8080"
     healthcheck:
@@ -150,6 +153,9 @@ services:
     <<: *airflow-common
     command: scheduler
     container_name: airflow-scheduler
+    build:
+      context: .
+      dockerfile: Dockerfile
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:8974/health" ]
       interval: 30s
