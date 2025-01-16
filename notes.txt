@@ -1,4 +1,0 @@
-New terms:
-    Star Schema
-    Fact/Dimension
-    DAG (Directed Acyclic Graph)
