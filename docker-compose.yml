@@ -37,76 +37,76 @@ x-airflow-common:
     - codewithyu
 
 services:
-  # zookeeper:
-  #   image: confluentinc/cp-zookeeper:7.4.0
-  #   hostname: zookeeper
-  #   container_name: zookeeper
-  #   restart: unless-stopped
-  #   ports:
-  #     - "2181:2181"
-  #   environment:
-  #     ZOOKEEPER_CLIENT_PORT: 2181
-  #     ZOOKEEPER_TICK_TIME: 2000
-  #   healthcheck:
-  #     test: [ "CMD", "bash", "-c", "echo 'ruok' | nc localhost 2181" ]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #   networks:
-  #     - codewithyu
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    hostname: zookeeper
+    container_name: zookeeper
+    restart: unless-stopped
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: [ "CMD", "bash", "-c", "echo 'ruok' | nc localhost 2181" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - codewithyu
 
-  # kafka_broker:
-  #   image: docker.redpanda.com/redpandadata/redpanda:v24.1.1
-  #   restart: unless-stopped
-  #   command: |
-  #     redpanda start
-  #     --smp 1
-  #     --overprovisioned
-  #     --node-id 0
-  #     --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
-  #     --advertise-kafka-addr internal://kafka_broker:9092,external://localhost:19092
-  #     --schema-registry-addr internal://0.0.0.0:8081,external://0.0.0.0:18081
-  #     --rpc-addr kafka_broker:33145
-  #     --advertise-rpc-addr kafka_broker:33145
-  #     --mode dev-container
-  #     --set auto_create_topics_enabled=true
-  #   ports:
-  #     - 18081:18081
-  #     - 18082:18082
-  #     - 19092:19092
-  #     - 19644:9644
-  #   networks:
-  #     - codewithyu
+  kafka_broker:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.1.1
+    restart: unless-stopped
+    command: |
+      redpanda start
+      --smp 1
+      --overprovisioned
+      --node-id 0
+      --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+      --advertise-kafka-addr internal://kafka_broker:9092,external://localhost:19092
+      --schema-registry-addr internal://0.0.0.0:8081,external://0.0.0.0:18081
+      --rpc-addr kafka_broker:33145
+      --advertise-rpc-addr kafka_broker:33145
+      --mode dev-container
+      --set auto_create_topics_enabled=true
+    ports:
+      - 18081:18081
+      - 18082:18082
+      - 19092:19092
+      - 19644:9644
+    networks:
+      - codewithyu
 
-  # console:
-  #   image: docker.redpanda.com/redpandadata/console:v2.5.2
-  #   restart: unless-stopped
-  #   entrypoint: /bin/sh
-  #   command: |-
-  #     -c 'echo "$$CONSOLE_CONFIG_FILE" > /tmp/config.yml; /app/console'
-  #   depends_on:
-  #     - kafka_broker
-  #   ports:
-  #     - 8080:8080
-  #   environment:
-  #     CONFIG_FILEPATH: /tmp/config.yml
-  #     CONSOLE_CONFIG_FILE: >
-  #       kafka:
-  #         brokers: ["kafka_broker:9092"]
-  #         schemaRegistry:
-  #           enabled: true
-  #           urls: ["http://kafka_broker:8081"]
-  #       redpanda:
-  #         adminApi:
-  #           enabled: true
-  #           urls: ["http://kafka_broker:9644"]
-  #       connect:
-  #         enabled: true
-  #         clusters:
-  #           - name: local-connect-cluster
-  #             url: http://connect:8083
-  #   networks:
-  #     - codewithyu
+  console:
+    image: docker.redpanda.com/redpandadata/console:v2.5.2
+    restart: unless-stopped
+    entrypoint: /bin/sh
+    command: |-
+      -c 'echo "$$CONSOLE_CONFIG_FILE" > /tmp/config.yml; /app/console'
+    depends_on:
+      - kafka_broker
+    ports:
+      - 8080:8080
+    environment:
+      CONFIG_FILEPATH: /tmp/config.yml
+      CONSOLE_CONFIG_FILE: >
+        kafka:
+          brokers: ["kafka_broker:9092"]
+          schemaRegistry:
+            enabled: true
+            urls: ["http://kafka_broker:8081"]
+        redpanda:
+          adminApi:
+            enabled: true
+            urls: ["http://kafka_broker:9644"]
+        connect:
+          enabled: true
+          clusters:
+            - name: local-connect-cluster
+              url: http://connect:8083
+    networks:
+      - codewithyu
 
   postgres:
     image: postgres:13
@@ -146,23 +146,23 @@ services:
     networks:
       - codewithyu
 
-  # airflow-scheduler:
-  #   <<: *airflow-common
-  #   command: scheduler
-  #   container_name: airflow-scheduler
-  #   healthcheck:
-  #     test: [ "CMD", "curl", "--fail", "http://localhost:8974/health" ]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5
-  #     start_period: 30s
-  #   restart: always
-  #   depends_on:
-  #     <<: *airflow-common-depends-on
-  #     airflow-init:
-  #       condition: service_completed_successfully
-  #   networks:
-  #     - codewithyu
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    container_name: airflow-scheduler
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:8974/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+    networks:
+      - codewithyu
 
   airflow-init:
     <<: *airflow-common
@@ -258,47 +258,47 @@ services:
     networks:
       - codewithyu
 
-  # pinot-controller:
-  #   image: apachepinot/pinot:1.2.0
-  #   command: "StartController -zkAddress zookeeper:2181"
-  #   container_name: pinot-controller
-  #   restart: unless-stopped
-  #   ports:
-  #     - "9000:9000"
-  #   environment:
-  #     JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms1G -Xmx1G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-controller.log"
-  #   depends_on:
-  #     - zookeeper
-  #   networks:
-  #     - codewithyu
+  pinot-controller:
+    image: apachepinot/pinot:1.2.0
+    command: "StartController -zkAddress zookeeper:2181"
+    container_name: pinot-controller
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    environment:
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms1G -Xmx1G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-controller.log"
+    depends_on:
+      - zookeeper
+    networks:
+      - codewithyu
 
-  # pinot-broker:
-  #   image: apachepinot/pinot:1.2.0
-  #   command: "StartBroker -zkAddress zookeeper:2181"
-  #   restart: unless-stopped
-  #   container_name: "pinot-broker"
-  #   ports:
-  #     - "8099:8099"
-  #   environment:
-  #     JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms1G -Xmx1G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-broker.log"
-  #   depends_on:
-  #     - pinot-controller
-  #   networks:
-  #     - codewithyu
+  pinot-broker:
+    image: apachepinot/pinot:1.2.0
+    command: "StartBroker -zkAddress zookeeper:2181"
+    restart: unless-stopped
+    container_name: "pinot-broker"
+    ports:
+      - "8099:8099"
+    environment:
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms1G -Xmx1G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-broker.log"
+    depends_on:
+      - pinot-controller
+    networks:
+      - codewithyu
 
-  # pinot-server:
-  #   image: apachepinot/pinot:1.2.0
-  #   command: "StartServer -zkAddress zookeeper:2181"
-  #   restart: unless-stopped
-  #   container_name: "pinot-server"
-  #   ports:
-  #     - "8098:8098"
-  #   environment:
-  #     JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms1G -Xmx1G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-server.log"
-  #   depends_on:
-  #     - pinot-broker
-  #   networks:
-  #     - codewithyu
+  pinot-server:
+    image: apachepinot/pinot:1.2.0
+    command: "StartServer -zkAddress zookeeper:2181"
+    restart: unless-stopped
+    container_name: "pinot-server"
+    ports:
+      - "8098:8098"
+    environment:
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms1G -Xmx1G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-server.log"
+    depends_on:
+      - pinot-broker
+    networks:
+      - codewithyu
 
   # superset:
   #   build:
